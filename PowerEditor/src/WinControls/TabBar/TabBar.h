@@ -268,6 +268,8 @@ protected:
 
 	static int _nbCtrl;
 	static HWND _hwndArray[nbCtrlMax];
+	
+	static bool _redrawingHighlights;
 
 	void drawItem(DRAWITEMSTRUCT *pDrawItemStruct);
 	void draggingCursor(POINT screenPoint);
