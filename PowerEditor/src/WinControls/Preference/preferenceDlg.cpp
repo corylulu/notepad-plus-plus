@@ -879,24 +879,57 @@ INT_PTR CALLBACK SettingsDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM)
 	switch (message) 
 	{
 		case WM_INITDIALOG :
-		{
-			::SendDlgItemMessage(_hSelf, IDC_COMBO_FILEUPDATECHOICE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Enable")));
+		{ 
+  		::SendDlgItemMessage(_hSelf, IDC_COMBO_FILEUPDATECHOICE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Enable")));
 			::SendDlgItemMessage(_hSelf, IDC_COMBO_FILEUPDATECHOICE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Enable for all opened files")));
 			::SendDlgItemMessage(_hSelf, IDC_COMBO_FILEUPDATECHOICE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Disable")));
-
+      
 			int selIndex = -1;
-			
 			if (nppGUI._fileAutoDetection & cdEnabledOld)
 			{
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0);        
 				selIndex = fileUpdateChoiceEnable4All;
 			}
-			else if (nppGUI._fileAutoDetection & cdEnabledNew)
-			{				
+      else if (nppGUI._fileAutoDetection & cdEnabledNew)
+			{	
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0);  			
 				selIndex = fileUpdateChoiceEnable;
+      }
+			else if (nppGUI._fileAutoDetection & cdAutoUpdate)
+			{
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0);
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_UPDATESILENTLY, BM_SETCHECK, BST_CHECKED, 0);
+				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_HIGHLIGHTTAB), FALSE);
 			}
+			else if (nppGUI._fileAutoDetection & cdGo2end)
+      {				
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0); 
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_UPDATEGOTOEOF, BM_SETCHECK, BST_CHECKED, 0);
+			}      
+			else if (nppGUI._fileAutoDetection == cdAutoUpdateGo2end)
+			{
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0);
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_UPDATESILENTLY, BM_SETCHECK, BST_CHECKED, 0);
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_UPDATEGOTOEOF, BM_SETCHECK, BST_CHECKED, 0);
+				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_HIGHLIGHTTAB), FALSE);
+			}
+			else if (nppGUI._fileAutoDetection == cdHighlight)
+			{
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0);
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_HIGHLIGHTTAB, BM_SETCHECK, BST_CHECKED, 0);
+				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_UPDATESILENTLY), FALSE);
+			}
+			else if (nppGUI._fileAutoDetection == cdHighlightGo2end)
+			{
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_FILEAUTODETECTION, BM_SETCHECK, BST_CHECKED, 0);
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_HIGHLIGHTTAB, BM_SETCHECK, BST_CHECKED, 0);
+				::SendDlgItemMessage(_hSelf, IDC_CHECK_UPDATEGOTOEOF, BM_SETCHECK, BST_CHECKED, 0);
+				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_UPDATESILENTLY), FALSE);
+      }
 			else //cdDisabled
 			{
 				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_UPDATESILENTLY), FALSE);
+				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_HIGHLIGHTTAB), FALSE);
 				::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_UPDATEGOTOEOF), FALSE);
 				
 				selIndex = fileUpdateChoiceDisable;
@@ -980,17 +1013,38 @@ INT_PTR CALLBACK SettingsDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM)
 			
 			switch (wParam)
 			{
+
 				case IDC_CHECK_UPDATESILENTLY:
+				case IDC_CHECK_HIGHLIGHTTAB:
 				case IDC_CHECK_UPDATEGOTOEOF:
 				{
 					bool isSilent = isCheckedOrNot(IDC_CHECK_UPDATESILENTLY);
 					bool isGo2End = isCheckedOrNot(IDC_CHECK_UPDATEGOTOEOF);
+					bool isHighlightTab = isCheckedOrNot(IDC_CHECK_HIGHLIGHTTAB);
+
+					::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_UPDATESILENTLY), !isHighlightTab);
+					::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_HIGHLIGHTTAB), !isSilent);
 
 					auto index = ::SendDlgItemMessage(_hSelf, IDC_COMBO_FILEUPDATECHOICE, CB_GETCURSEL, 0, 0);
 
 					int cd = cdDisabled;
 
-					if (index == fileUpdateChoiceEnable || index == fileUpdateChoiceEnable4All)
+          if (isHighlightTab)
+          {
+            if (!isSilent && isHighlightTab && !isGo2End)
+              cd = cdHighlight;
+            else if (!isSilent && isHighlightTab && isGo2End)
+              cd = cdHighlightGo2end;
+            else if (!isSilent && !isGo2End)
+              cd = cdEnabled;
+            else if (!isSilent && isGo2End)
+              cd = cdGo2end;
+            else if (isSilent && !isGo2End)
+              cd = cdAutoUpdate;
+            else //(isSilent && isGo2End)
+              cd = cdAutoUpdateGo2end;
+          }
+					else if (index == fileUpdateChoiceEnable || index == fileUpdateChoiceEnable4All)
 					{
 						if (index == fileUpdateChoiceEnable4All)
 							cd |= cdEnabledOld;

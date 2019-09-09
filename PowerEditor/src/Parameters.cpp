@@ -4190,8 +4190,12 @@ void NppParameters::feedGUIParameters(TiXmlNode *node)
 					else if (!lstrcmp(val, TEXT("Update2End")))
 						_nppGUI._fileAutoDetection = (cdEnabledNew | cdGo2end);
 					else if (!lstrcmp(val, TEXT("autoUpdate2End")))
-						_nppGUI._fileAutoDetection = (cdEnabledNew | cdAutoUpdate | cdGo2end);
-					else //(!lstrcmp(val, TEXT("no")))
+						_nppGUI._fileAutoDetection = cdAutoUpdateGo2end;
+					else if (!lstrcmp(val, TEXT("highlight")))
+						_nppGUI._fileAutoDetection = cdHighlight;
+					else if (!lstrcmp(val, TEXT("highlight2End")))
+						_nppGUI._fileAutoDetection = cdHighlightGo2end;
+		 			else //(!lstrcmp(val, TEXT("no")))
 						_nppGUI._fileAutoDetection = cdDisabled;
 				}
 			}
@@ -5497,9 +5501,118 @@ void NppParameters::createXmlTreeFromGUIParams()
 
 		pStr = (_nppGUI._tabStatus & TAB_MULTILINE) ? TEXT("yes") : TEXT("no");
 		GUIConfigElement->SetAttribute(TEXT("multiLine"), pStr);
-
-		pStr = (_nppGUI._tabStatus & TAB_HIDE) ? TEXT("yes") : TEXT("no");
-		GUIConfigElement->SetAttribute(TEXT("hide"), pStr);
+			pStr = (_nppGUI._userDefineDlgStatus & UDD_DOCKED)?TEXT("docked"):TEXT("undocked");
+			element->SetAttribute(TEXT("position"), pStr);
+		}
+		else if (!lstrcmp(nm, TEXT("TabSetting")))
+		{
+			const TCHAR *pStr = _nppGUI._tabReplacedBySpace?TEXT("yes"):TEXT("no");
+			element->SetAttribute(TEXT("replaceBySpace"), pStr);
+			element->SetAttribute(TEXT("size"), _nppGUI._tabSize);
+		}
+		else if (!lstrcmp(nm, TEXT("Caret")))
+		{
+			caretExist = true;
+			element->SetAttribute(TEXT("width"), _nppGUI._caretWidth);
+			element->SetAttribute(TEXT("blinkRate"), _nppGUI._caretBlinkRate);
+		}
+		else if (!lstrcmp(nm, TEXT("ScintillaGlobalSettings")))
+		{
+			ScintillaGlobalSettingsExist = true;
+			element->SetAttribute(TEXT("enableMultiSelection"), _nppGUI._enableMultiSelection?TEXT("yes"):TEXT("no"));
+		}
+		else if (!lstrcmp(nm, TEXT("Auto-detection")))
+		{
+			autoDetectionExist = true;
+			const TCHAR *pStr = TEXT("no");
+			switch (_nppGUI._fileAutoDetection)
+			{
+				case cdEnabled:
+					pStr = TEXT("yes");
+					break;
+				case cdAutoUpdate:
+					pStr = TEXT("auto");
+					break;
+				case cdGo2end:
+        case (cdEnabledNew | cdGo2end)
+					pStr = TEXT("Update2End");
+					break;
+				case cdAutoUpdateGo2end:
+					pStr = TEXT("autoUpdate2End");
+					break;
+				case cdHighlight:
+					pStr = TEXT("highlight");
+					break;
+				case cdHighlightGo2end:
+					pStr = TEXT("highlight2End");
+					break;
+			}
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
+		else if (!lstrcmp(nm, TEXT("TrayIcon")))
+		{
+			trayIconExist = true;
+			const TCHAR *pStr = _nppGUI._isMinimizedToTray?TEXT("yes"):TEXT("no");
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
+		else if (!lstrcmp(nm, TEXT("RememberLastSession")))
+		{
+			rememberLastSessionExist = true;
+			const TCHAR *pStr = _nppGUI._rememberLastSession?TEXT("yes"):TEXT("no");
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
+		else if (!lstrcmp(nm, TEXT("DetectEncoding")))
+		{
+			detectEncoding = true;
+			const TCHAR *pStr = _nppGUI._detectEncoding?TEXT("yes"):TEXT("no");
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
+		else if (!lstrcmp(nm, TEXT("MaitainIndent")))
+		{
+			maitainIndentExist = true;
+			const TCHAR *pStr = _nppGUI._maitainIndent?TEXT("yes"):TEXT("no");
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
+		else if (!lstrcmp(nm, TEXT("SmartHighLight")))
+		{
+			smartHighLightExist = true;
+			const TCHAR *pStr = _nppGUI._enableSmartHilite?TEXT("yes"):TEXT("no");
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
+		else if (!lstrcmp(nm, TEXT("SmartHighLightCaseSensitive")))
+		{
+			smartHighLightCaseSensitiveExist = true;
+			const TCHAR *pStr = _nppGUI._smartHiliteCaseSensitive?TEXT("yes"):TEXT("no");
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+				n->SetValue(pStr);
+			else
+				childNode->InsertEndChild(TiXmlText(pStr));
+		}
 
 		pStr = (_nppGUI._tabStatus & TAB_QUITONEMPTY) ? TEXT("yes") : TEXT("no");
 		GUIConfigElement->SetAttribute(TEXT("quitOnEmpty"), pStr);
@@ -5586,7 +5699,19 @@ void NppParameters::createXmlTreeFromGUIParams()
 			else if (_nppGUI._fileAutoDetection & cdGo2end)
 			{
 				pStr = TEXT("Update2End");
-			}
+      }
+      else if (_nppGUI._fileAutoDetection & cdAutoUpdateGo2end)
+      {
+				pStr = TEXT("autoUpdate2End");
+      }      
+      else if (_nppGUI._fileAutoDetection & cdHighlight)
+      {
+				pStr = TEXT("highlight");
+      }      
+      else if (_nppGUI._fileAutoDetection & cdHighlightGo2end) 
+      {
+				pStr = TEXT("highlight2End");
+      }
 		}
 
 		TiXmlElement *GUIConfigElement = (newGUIRoot->InsertEndChild(TiXmlElement(TEXT("GUIConfig"))))->ToElement();

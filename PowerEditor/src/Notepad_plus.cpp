@@ -3804,7 +3804,7 @@ bool Notepad_plus::activateBuffer(BufferID id, int whichOne)
 void Notepad_plus::performPostReload(int whichOne) {
 	NppParameters& nppParam = NppParameters::getInstance();
 	const NppGUI & nppGUI = nppParam.getNppGUI();
-	bool toEnd = (nppGUI._fileAutoDetection & cdGo2end) ? true : false;
+	bool toEnd = (nppGUI._fileAutoDetection == cdAutoUpdateGo2end) || (nppGUI._fileAutoDetection == cdGo2end) || (nppGUI._fileAutoDetection == cdHighlightGo2end);
 	if (!toEnd)
 		return;
 	if (whichOne == MAIN_VIEW) {
@@ -5138,12 +5138,16 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 			}
 			case DOC_MODIFIED:	//ask for reloading
 			{
-				// Since it is being monitored DOC_NEEDRELOAD is going to handle the change.
+        // [Begin] CORY'S CHANGE (Taken from master, not sure if needed or conflicting)
+  			// Since it is being monitored DOC_NEEDRELOAD is going to handle the change.
 				if (buffer->isMonitoringOn())
 					break;
+        // [ End ] CORY'S CHANGE
+        
+				bool highlight = (nppGUI._fileAutoDetection == cdHighlight) || (nppGUI._fileAutoDetection == cdHighlightGo2end);
+				bool autoUpdate = (nppGUI._fileAutoDetection == cdAutoUpdate) || (nppGUI._fileAutoDetection == cdAutoUpdateGo2end);
+				if ((highlight && (mainActive || subActive)) || (!highlight && !autoUpdate) || buffer->isDirty())
 
-				bool autoUpdate = (nppGUI._fileAutoDetection & cdAutoUpdate) ? true : false;
-				if (!autoUpdate || buffer->isDirty())
 				{
 					prepareBufferChangedDialog(buffer);
 
@@ -5155,6 +5159,16 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 
 						break;	//abort
 					}
+				}
+				else if (highlight && !mainActive && !subActive)
+				{
+					int index_m = _mainDocTab.getIndexByBuffer(buffer->getID());
+					if(index_m != -1)
+						_mainDocTab.setHighlight(index_m, true);
+					int index_s = _subDocTab.getIndexByBuffer(buffer->getID());
+					if(index_s != -1)
+						_subDocTab.setHighlight(index_s, true);
+					break;
 				}
 				// Set _isLoadedDirty false so when the document clean state is reached the icon will be set to blue
 				buffer->setLoadedDirty(false);

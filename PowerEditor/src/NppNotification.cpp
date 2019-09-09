@@ -340,7 +340,35 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 			}
 
 			if (fileClose(bufferToClose, iView))
+			{
 				checkDocState();
+				
+				DocTabView * view = isFromPrimary ? &_mainDocTab : &_subDocTab;
+				BufferID bufid = view->getBufferByIndex(view->getCurrentTabIndex());
+				if (bufid != BUFFER_INVALID)
+				{
+					int index = view->getCurrentTabIndex();
+					bool isHighlighted = view->isHighlighed(index);
+					if (isHighlighted)
+					{
+						if (_mainDocTab.getIndexByBuffer(bufid) != -1)
+							_mainDocTab.setHighlight(_mainDocTab.getIndexByBuffer(bufid), false);
+						if (_subDocTab.getIndexByBuffer(bufid) != -1)
+							_subDocTab.setHighlight(_subDocTab.getIndexByBuffer(bufid), false);
+						Buffer * pBuf = MainFileManager->getBufferByID(bufid);
+						if (doReloadOrNot(pBuf->getFullPathName(), pBuf->isDirty()) == IDYES)
+						{
+							doReload(bufid, false);
+							if (NppParameters::getInstance()->getNppGUI()._fileAutoDetection == cdHighlightGo2end)
+							{
+								bool mainActive = (_mainEditView.getCurrentBufferID() == bufid);
+								performPostReload(mainActive ? MAIN_VIEW : SUB_VIEW);
+							}
+						}
+					}
+				}
+
+			}
 
 			break;
 		}
@@ -369,6 +397,26 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 				_isFolding = true; // So we can ignore events while folding is taking place
 				activateBuffer(bufid, iView);
 				_isFolding = false;
+
+				int index = _pDocTab->getCurrentTabIndex();
+				bool isHighlighted = _pDocTab->isHighlighed(index);
+				if (isHighlighted)
+				{
+					if (_mainDocTab.getIndexByBuffer(bufid) != -1)
+						_mainDocTab.setHighlight(_mainDocTab.getIndexByBuffer(bufid), false);
+					if (_subDocTab.getIndexByBuffer(bufid) != -1)
+						_subDocTab.setHighlight(_subDocTab.getIndexByBuffer(bufid), false);
+					Buffer * pBuf = MainFileManager->getBufferByID(bufid);
+					if (doReloadOrNot(pBuf->getFullPathName(), pBuf->isDirty()) == IDYES)
+					{
+						doReload(bufid, false);
+						if (NppParameters::getInstance()->getNppGUI()._fileAutoDetection == cdHighlightGo2end)
+						{
+							bool mainActive = (_mainEditView.getCurrentBufferID() == bufid);
+							performPostReload(mainActive ? MAIN_VIEW : SUB_VIEW);
+						}
+					}
+				}
 			}
 			_documentPeeker.display(false);
 			break;
