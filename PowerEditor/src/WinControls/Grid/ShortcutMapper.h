@@ -26,37 +26,22 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef SHORTCUTMAPPER
-#define SHORTCUTMAPPER
+#pragma once
 
-#ifndef BABYGRIDWRAPPER
 #include "BabyGridWrapper.h"
-#endif// BABYGRIDWRAPPER
-
-#ifndef SHORTCUTMAPPER_RC_H
 #include "ShortcutMapper_rc.h"
-#endif //SHORTCUTMAPPER_RC_H
-
-#ifndef SHORTCUTS_H
 #include "shortcut.h"
-#endif// SHORTCUTS_H
-
-#ifndef CONTEXTMENU_H
 #include "ContextMenu.h"
-#endif// CONTEXTMENU_H
 
 enum GridState {STATE_MENU, STATE_MACRO, STATE_USER, STATE_PLUGIN, STATE_SCINTILLA};
 
 class ShortcutMapper : public StaticDialog {
 public:
 	ShortcutMapper() : _currentState(STATE_MENU), StaticDialog() {
-		generic_strncpy(tabNames[0], TEXT("Main menu"), maxTabName);
-		generic_strncpy(tabNames[1], TEXT("Macros"), maxTabName);
-		generic_strncpy(tabNames[2], TEXT("Run commands"), maxTabName);
-		generic_strncpy(tabNames[3], TEXT("Plugin commands"), maxTabName);
-		generic_strncpy(tabNames[4], TEXT("Scintilla commands"), maxTabName);
+		_shortcutFilter = TEXT("");
+		_dialogInitDone = false;
 	};
-	~ShortcutMapper() {};
+	~ShortcutMapper() = default;
 
 	void init(HINSTANCE hInst, HWND parent, GridState initState = STATE_MENU) {
         Window::init(hInst, parent);
@@ -69,31 +54,68 @@ public:
 		{
 			DLGTEMPLATE *pMyDlgTemplate = NULL;
 			HGLOBAL hMyDlgTemplate = makeRTLResource(IDD_SHORTCUTMAPPER_DLG, &pMyDlgTemplate);
-			::DialogBoxIndirectParam(_hInst, pMyDlgTemplate, _hParent,  dlgProc, (LPARAM)this);
+			::DialogBoxIndirectParam(_hInst, pMyDlgTemplate, _hParent, dlgProc, reinterpret_cast<LPARAM>(this));
 			::GlobalFree(hMyDlgTemplate);
 		}
 		else
-			::DialogBoxParam(_hInst, MAKEINTRESOURCE(IDD_SHORTCUTMAPPER_DLG), _hParent, dlgProc, (LPARAM)this);
+			::DialogBoxParam(_hInst, MAKEINTRESOURCE(IDD_SHORTCUTMAPPER_DLG), _hParent, dlgProc, reinterpret_cast<LPARAM>(this));
 	};
 	void getClientRect(RECT & rc) const;
-	void translateTab(int index, const TCHAR * newname);
+
+	bool findKeyConflicts(__inout_opt generic_string * const keyConflictLocation,
+							const KeyCombo & itemKeyCombo, const size_t & itemIndex) const;
+
+	generic_string getTextFromCombo(HWND hCombo);
+	bool isFilterValid(Shortcut);
+	bool isFilterValid(PluginCmdShortcut sc);
 
 protected :
 	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 
 private:
-	static const int maxTabName = 64;
 	BabyGridWrapper _babygrid;
 	ContextMenu _rightClickMenu;
 
 	GridState _currentState;
-	HWND _hTabCtrl;
+	HWND _hTabCtrl = nullptr;
 
-	TCHAR tabNames[5][maxTabName];
+	const static int _nbTab = 5;
+	generic_string _tabNames[_nbTab];
+	generic_string _shortcutFilter;
+	std::vector<size_t> _shortcutIndex;
+
+	//save/restore the last view
+	std::vector<size_t> _lastHomeRow;
+	std::vector<size_t> _lastCursorRow;
+
+	generic_string _conflictInfoOk;
+	generic_string _conflictInfoEditing;
+
+	std::vector<HFONT> _hGridFonts;
+
+	enum GridFonts : uint_fast8_t
+	{
+		GFONT_HEADER,
+		GFONT_ROWS,
+		MAX_GRID_FONTS
+	};
+	LONG _clientWidth;
+	LONG _clientHeight;
+	LONG _initClientWidth;
+	LONG _initClientHeight;
+	bool _dialogInitDone;
 
 	void initTabs();
 	void initBabyGrid();
 	void fillOutBabyGrid();
+	generic_string getTabString(size_t i) const;
+
+	bool isConflict(const KeyCombo & lhs, const KeyCombo & rhs) const
+	{
+		return ( (lhs._isCtrl  == rhs._isCtrl ) &&
+				 (lhs._isAlt   == rhs._isAlt  ) &&
+				 (lhs._isShift == rhs._isShift) &&
+				 (lhs._key	   == rhs._key	  ) );
+	}
 };
 
-#endif //SHORTCUTMAPPER

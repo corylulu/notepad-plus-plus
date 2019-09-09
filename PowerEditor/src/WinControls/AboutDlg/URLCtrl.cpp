@@ -104,7 +104,7 @@ static BYTE ANDMask[128] =
 
 
 
-void URLCtrl::create(HWND itemHandle, TCHAR * link, COLORREF linkColor)
+void URLCtrl::create(HWND itemHandle, const TCHAR * link, COLORREF linkColor)
 {
 	// turn on notify style
     ::SetWindowLongPtr(itemHandle, GWL_STYLE, ::GetWindowLongPtr(itemHandle, GWL_STYLE) | SS_NOTIFY);
@@ -120,10 +120,10 @@ void URLCtrl::create(HWND itemHandle, TCHAR * link, COLORREF linkColor)
 	_visitedColor = RGB(128,0,128);
 
 	// subclass the static control
-    _oldproc = (WNDPROC)::SetWindowLongPtr(itemHandle, GWLP_WNDPROC, (LONG_PTR)URLCtrlProc);
+	_oldproc = reinterpret_cast<WNDPROC>(::SetWindowLongPtr(itemHandle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(URLCtrlProc)));
 
 	// associate the URL structure with the static control
-    ::SetWindowLongPtr(itemHandle, GWLP_USERDATA, (LONG_PTR)this);
+	::SetWindowLongPtr(itemHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
 	// save hwnd
 	_hSelf = itemHandle;
@@ -140,10 +140,10 @@ void URLCtrl::create(HWND itemHandle, int cmd, HWND msgDest)
     _linkColor = RGB(0,0,255);
 
 	// subclass the static control
-    _oldproc = (WNDPROC)::SetWindowLongPtr(itemHandle, GWLP_WNDPROC, (LONG_PTR)URLCtrlProc);
+	_oldproc = reinterpret_cast<WNDPROC>(::SetWindowLongPtr(itemHandle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(URLCtrlProc)));
 
 	// associate the URL structure with the static control
-    ::SetWindowLongPtr(itemHandle, GWLP_USERDATA, (LONG_PTR)this);
+	::SetWindowLongPtr(itemHandle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
 	// save hwnd
 	_hSelf = itemHandle;
@@ -151,9 +151,9 @@ void URLCtrl::create(HWND itemHandle, int cmd, HWND msgDest)
 
 void URLCtrl::destroy()
 {
-    	if(_hfUnderlined)
+    	if (_hfUnderlined)
             ::DeleteObject(_hfUnderlined);
-        if(_hCursor)
+        if (_hCursor)
             ::DestroyCursor(_hCursor);
 }
 
@@ -171,7 +171,7 @@ void URLCtrl::action()
 		::UpdateWindow(_hSelf);
 
 		// Open a browser
-		if(_URL != TEXT(""))
+		if (_URL != TEXT(""))
 		{
 			::ShellExecute(NULL, TEXT("open"), _URL.c_str(), NULL, NULL, SW_SHOWNORMAL);
 		}
@@ -197,13 +197,13 @@ LRESULT URLCtrl::runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	    // colours, and with an underline text style
 	    case WM_PAINT:
         {
-			DWORD dwStyle = ::GetWindowLongPtr(hwnd, GWL_STYLE);
+			DWORD dwStyle = static_cast<DWORD>(::GetWindowLongPtr(hwnd, GWL_STYLE));
 		    DWORD dwDTStyle = DT_SINGLELINE;
 
 		    //Test if centered horizontally or vertically
-		    if(dwStyle & SS_CENTER)	     dwDTStyle |= DT_CENTER;
-		    if(dwStyle & SS_RIGHT)		 dwDTStyle |= DT_RIGHT;
-		    if(dwStyle & SS_CENTERIMAGE) dwDTStyle |= DT_VCENTER;
+		    if (dwStyle & SS_CENTER)	     dwDTStyle |= DT_CENTER;
+		    if (dwStyle & SS_RIGHT)		 dwDTStyle |= DT_RIGHT;
+		    if (dwStyle & SS_CENTERIMAGE) dwDTStyle |= DT_VCENTER;
 
 	        RECT		rect;
             ::GetClientRect(hwnd, &rect);
@@ -216,7 +216,7 @@ LRESULT URLCtrl::runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
             ::SetBkColor(hdc, getCtrlBgColor(GetParent(hwnd))); ///*::GetSysColor(COLOR_3DFACE)*/);
 
 		    // Create an underline font
-		    if(_hfUnderlined == 0)
+		    if (_hfUnderlined == 0)
 		    {
 			    // Get the default GUI font
 			    LOGFONT lf;
@@ -266,7 +266,7 @@ LRESULT URLCtrl::runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		    break;
 
 	    case WM_LBUTTONUP:
-		    if(_clicking)
+		    if (_clicking)
 		    {
 			    _clicking = false;
 
@@ -277,12 +277,12 @@ LRESULT URLCtrl::runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 
 		//Support using space to activate this object
 		case WM_KEYDOWN:
-			if(wParam == VK_SPACE)
+			if (wParam == VK_SPACE)
 				_clicking = true;
 			break;
 
 		case WM_KEYUP:
-			if(wParam == VK_SPACE && _clicking)
+			if (wParam == VK_SPACE && _clicking)
 			{
 				_clicking = false;
 

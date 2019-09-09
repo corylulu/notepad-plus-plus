@@ -26,22 +26,17 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef AUTOCOMPLETION_H
-#define AUTOCOMPLETION_H
+#pragma once
 
-#ifndef FUNCTIONCALLTIP_H
 #include "FunctionCallTip.h"
-#endif// FUNCTIONCALLTIP_H
-
-#ifndef TINYXML_INCLUDED
 #include "tinyxml.h"
-#endif// TINYXML_INCLUDED
 
 const size_t tagMaxLen = 256;
 
 class ScintillaEditView;
 
 struct MatchedCharInserted {
+	MatchedCharInserted() = delete;
 	char _c;
 	int _pos;
 	MatchedCharInserted(char c, int pos) : _c(c), _pos(pos) {};
@@ -57,23 +52,18 @@ public:
 
 private:
 	std::vector<MatchedCharInserted> _insertedMatchedChars;
-	ScintillaEditView * _pEditView;
+	ScintillaEditView * _pEditView = nullptr;;
 };
 
 class AutoCompletion {
 public:
-	enum ActiveCompletion {CompletionNone = 0, CompletionAuto, CompletionWord, CompletionFunc, CompletionPath};
-
-	AutoCompletion(ScintillaEditView * pEditView) : _funcCompletionActive(false), _pEditView(pEditView), _funcCalltip(pEditView), 
-																_curLang(L_TEXT), _pXmlFile(NULL), _keyWordMaxLen(0),
-																_pXmlKeyword(NULL), _ignoreCase(true), _keyWords(TEXT("")) {
+	explicit AutoCompletion(ScintillaEditView * pEditView): _pEditView(pEditView), _funcCalltip(pEditView) {
 		//Do not load any language yet
 		_insertedMatchedChars.init(_pEditView);
 	};
 
 	~AutoCompletion(){
-		if (_pXmlFile)
-			delete _pXmlFile;
+		delete _pXmlFile;
 	};
 
 	bool setLanguage(LangType language);
@@ -91,28 +81,26 @@ public:
 
 	void insertMatchedChars(int character, const MatchedPairConf & matchedPairConf);
 	void update(int character);
-	void callTipClick(int direction);
+	void callTipClick(size_t direction);
 	void getCloseTag(char *closeTag, size_t closeTagLen, size_t caretPos, bool isHTML);
 
 private:
-	bool _funcCompletionActive;
-	ScintillaEditView * _pEditView;
-	LangType _curLang;
-	TiXmlDocument *_pXmlFile;
-	TiXmlElement *_pXmlKeyword;
+	bool _funcCompletionActive = false;
+	ScintillaEditView * _pEditView = nullptr;
+	LangType _curLang = L_TEXT;
+	TiXmlDocument *_pXmlFile = nullptr;
+	TiXmlElement *_pXmlKeyword = nullptr;
 
 	InsertedMatchedChars _insertedMatchedChars;
 
-	bool _ignoreCase;
+	bool _ignoreCase = true;
 
 	std::vector<generic_string> _keyWordArray;
 	generic_string _keyWords;
-	size_t _keyWordMaxLen;
+	size_t _keyWordMaxLen = 0;
 
 	FunctionCallTip _funcCalltip;
 
 	const TCHAR * getApiFileName();
 	void getWordArray(std::vector<generic_string> & wordArray, TCHAR *beginChars);
 };
-
-#endif //AUTOCOMPLETION_H

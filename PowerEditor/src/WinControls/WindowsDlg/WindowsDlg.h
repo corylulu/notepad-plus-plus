@@ -26,14 +26,12 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef WINDOWS_DLG_H
-#define WINDOWS_DLG_H
+#pragma once
 
 #include "SizeableDlg.h"
 #include "Common.h"
 
 class DocTabView;
-class TiXmlNodeA;
 
 typedef enum {
 	WDT_ACTIVATE = 1,
@@ -62,19 +60,12 @@ class WindowsDlg : public SizeableDlg
 {
 	typedef SizeableDlg MyBaseClass;
 
-	class CachedValue
-	{
-		generic_string fullname;
-		int index;
-	};
-
 public :
 	WindowsDlg();
-	int doDialog(TiXmlNodeA *dlgNode);
+	int doDialog();
 	virtual void init(HINSTANCE hInst, HWND parent, DocTabView *pTab);
 
 	void doRefresh(bool invalidate = false);
-	bool changeDlgLang();
 
 protected :
 	virtual INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
@@ -83,6 +74,7 @@ protected :
 	virtual void onGetMinMaxInfo(MINMAXINFO* lpMMI);
 	virtual LRESULT onWinMgr(WPARAM wp, LPARAM lp);
 	virtual void destroy();
+	void updateColumnNames();
 	void fitColumnsToSize();
 	void resetSelection();
 	void doSave();
@@ -90,16 +82,17 @@ protected :
 	void doSortToTabs();
 	void updateButtonState();
 	void activateCurrent();
+	void doColumnSort();
 
-	HWND _hList;
+	HWND _hList = nullptr;
 	static RECT _lastKnownLocation;
 	SIZE _szMinButton;
 	SIZE _szMinListCtrl;
-	DocTabView *_pTab;
+	DocTabView *_pTab = nullptr;
 	std::vector<int> _idxMap;
-	int _lastSort;
-	bool _isSorted;
-	TiXmlNodeA *_dlgNode;
+	int _currentColumn = -1;
+	int _lastSort = -1;
+	bool _reverseSort = false;
 
 private:
 	virtual void init(HINSTANCE hInst, HWND parent);	
@@ -111,12 +104,9 @@ public:
 	WindowsMenu();
 	~WindowsMenu();
 	void init(HINSTANCE hInst, HMENU hMainMenu, const TCHAR *translation); 
-	//void initMenu(HMENU hMenu, ScintillaEditView *pView);
 	void initPopupMenu(HMENU hMenu, DocTabView *pTab);
-	//void uninitPopupMenu(HMENU hMenu, ScintillaEditView *pView);
+
 private:
-	HMENU _hMenu;
+	HMENU _hMenu = nullptr;
 };
 
-
-#endif //WINDOWS_DLG_H

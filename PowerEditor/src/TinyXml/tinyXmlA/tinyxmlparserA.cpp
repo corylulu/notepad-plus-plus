@@ -168,14 +168,14 @@ const char* TiXmlBaseA::SkipWhiteSpace( const char* p )
 #ifdef TIXMLA_USE_STL
 /*static*/ bool TiXmlBaseA::StreamWhiteSpace( TIXMLA_ISTREAM * in, TIXMLA_STRING * tag )
 {
-	for( ;; )
+	for ( ;; )
 	{
 		if ( !in->good() ) return false;
 
 		int c = in->peek();
 		if ( !IsWhiteSpace( c ) )
 			return true;
-		*tag += (char)in->get();
+		*tag += static_cast<char>(in->get());
 	}
 }
 
@@ -188,7 +188,7 @@ const char* TiXmlBaseA::SkipWhiteSpace( const char* p )
 			return true;
 
 		in->get();
-		*tag += (char)c;
+		*tag += static_cast<char>(c);
 	}
 	return false;
 }
@@ -203,10 +203,10 @@ const char* TiXmlBaseA::ReadName( const char* p, TIXMLA_STRING * name )
 	// After that, they can be letters, underscores, numbers,
 	// hyphens, or colons. (Colons are valid ony for namespaces,
 	// but tinyxml can't tell namespaces from names.)
-	if (    p && *p 
-		 && ( isalpha( (unsigned char) *p ) || *p == '_' ) )
+	if ( p && *p 
+		&& (isalpha(static_cast<unsigned char>(*p)) || *p == '_'))
 	{
-		while(		p && *p
+		while ( p && *p
 				&&	(		isalnum( (unsigned char ) *p ) 
 						 || *p == '_'
 						 || *p == '-'
@@ -240,29 +240,29 @@ const char* TiXmlBaseA::GetEntity( const char* p, char* value )
 		{
 			// Short, one value entity.
 			if ( isalpha( *(p+3) ) ) 
-				*value += ( (char)tolower( *(p+3) ) - 'a' + 10 );
+				*value += (static_cast<char>(tolower(*(p + 3))) - 'a' + 10);
 			else				     
-				*value += ( (char)*(p+3) - '0' );
+				*value += (static_cast<char>(*(p + 3)) - '0');
 
 			return p+5;
 		}
 		else
 		{
 			// two value entity
-			if ( isalpha( *(p+3) ) ) *value += ((char) tolower( *(p+3) ) - 'a' + 10 ) * 16;
-			else				     *value += ((char) *(p+3) - '0' ) * 16;
+			if (isalpha(*(p + 3))) *value += (static_cast<char>(tolower(*(p + 3))) - 'a' + 10) * 16;
+			else				     *value += (static_cast<char>(*(p + 3)) - '0') * 16;
 
 			if ( isalpha( *(p+4) ) ) 
-				*value += ((char) tolower( *(p+4) ) - 'a' + 10 );
+				*value += (static_cast<char>(tolower(*(p + 4))) - 'a' + 10);
 			else				     
-				*value += ((char) *(p+4) - '0' );
+				*value += (static_cast<char>(*(p + 4)) - '0');
 
 			return p+6;
 		}
 	}
 
 	// Now try to match it.
-	for( i=0; i<NUM_ENTITY; ++i )
+	for ( i=0; i<NUM_ENTITY; ++i )
 	{
 		if ( strncmp( entity[i].str, p, entity[i].strLength ) == 0 )
 		{
@@ -399,11 +399,11 @@ void TiXmlDocumentA::StreamIn( TIXMLA_ISTREAM * in, TIXMLA_STRING * tag )
 
 	while ( in->good() )
 	{
-		int tagIndex = tag->length();
+		size_t tagIndex = tag->length();
 		while ( in->good() && in->peek() != '>' )
 		{
 			int c = in->get();
-			(*tag) += (char) c;
+			(*tag) += static_cast<char>(c);
 		}
 
 		if ( in->good() )
@@ -522,7 +522,7 @@ TiXmlNodeA* TiXmlNodeA::Identify( const char* p )
 	TiXmlNodeA* returnNode = 0;
 
 	p = SkipWhiteSpace( p );
-	if( !p || !*p || *p != '<' )
+	if ( !p || !*p || *p != '<' )
 	{
 		return 0;
 	}
@@ -594,10 +594,10 @@ void TiXmlElementA::StreamIn (TIXMLA_ISTREAM * in, TIXMLA_STRING * tag)
 {
 	// We're called with some amount of pre-parsing. That is, some of "this"
 	// element is in "tag". Go ahead and stream to the closing ">"
-	while( in->good() )
+	while ( in->good() )
 	{
 		int c = in->get();
-		(*tag) += (char) c ;
+		(*tag) += static_cast<char>(c);
 		
 		if ( c == '>' )
 			break;
@@ -640,12 +640,12 @@ void TiXmlElementA::StreamIn (TIXMLA_ISTREAM * in, TIXMLA_STRING * tag)
 			// We should be at a "<", regardless.
 			if ( !in->good() ) return;
 			assert( in->peek() == '<' );
-			int tagIndex = tag->length();
+			size_t tagIndex = tag->length();
 
 			bool closingTag = false;
 			bool firstCharFound = false;
 
-			for( ;; )
+			for ( ;; )
 			{
 				if ( !in->good() )
 					return;
@@ -655,7 +655,7 @@ void TiXmlElementA::StreamIn (TIXMLA_ISTREAM * in, TIXMLA_STRING * tag)
 				if ( c == '>' )
 					break;
 
-				*tag += (char)c;
+				*tag += static_cast<char>(c);
 				in->get();
 
 				if ( !firstCharFound && c != '<' && !IsWhiteSpace( c ) )
@@ -671,7 +671,7 @@ void TiXmlElementA::StreamIn (TIXMLA_ISTREAM * in, TIXMLA_STRING * tag)
 			{
 				int c = in->get();
 				assert( c == '>' );
-				*tag += (char)c;
+				*tag += static_cast<char>(c);
 
 				// We are done, once we've found our closing tag.
 				return;
@@ -880,7 +880,7 @@ void TiXmlUnknownA::StreamIn( TIXMLA_ISTREAM * in, TIXMLA_STRING * tag )
 	while ( in->good() )
 	{
 		int c = in->get();	
-		(*tag) += (char)c;
+		(*tag) += static_cast<char>(c);
 
 		if ( c == '>' )
 		{
@@ -932,7 +932,7 @@ void TiXmlCommentA::StreamIn( TIXMLA_ISTREAM * in, TIXMLA_STRING * tag )
 	while ( in->good() )
 	{
 		int c = in->get();	
-		(*tag) += (char)c;
+		(*tag) += static_cast<char>(c);
 
 		if ( c == '>' 
 			 && tag->at( tag->length() - 2 ) == '-'
@@ -1051,7 +1051,7 @@ void TiXmlTextA::StreamIn( TIXMLA_ISTREAM * in, TIXMLA_STRING * tag )
 		if ( c == '<' )
 			return;
 
-		(*tag) += (char)c;
+		(*tag) += static_cast<char>(c);
 		in->get();
 	}
 }
@@ -1081,7 +1081,7 @@ void TiXmlDeclarationA::StreamIn( TIXMLA_ISTREAM * in, TIXMLA_STRING * tag )
 	while ( in->good() )
 	{
 		int c = in->get();
-		(*tag) += (char)c;
+		(*tag) += static_cast<char>(c);
 
 		if ( c == '>' )
 		{
@@ -1145,7 +1145,7 @@ const char* TiXmlDeclarationA::Parse( const char* p, TiXmlParsingDataA* data )
 		else
 		{
 			// Read over whatever it is.
-			while( p && *p && *p != '>' && !isspace( *p ) )
+			while ( p && *p && *p != '>' && !isspace( *p ) )
 				++p;
 		}
 	}
@@ -1154,7 +1154,7 @@ const char* TiXmlDeclarationA::Parse( const char* p, TiXmlParsingDataA* data )
 
 bool TiXmlTextA::Blank() const
 {
-	for ( unsigned int i=0, len=value.length(); i<len; i++ )
+	for ( size_t i = 0, len = value.length(); i < len; i++ )
 		if ( !isspace( value[i] ) )
 			return false;
 	return true;

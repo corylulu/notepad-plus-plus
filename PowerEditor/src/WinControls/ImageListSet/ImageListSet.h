@@ -26,8 +26,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef IMAGE_LIST_H
-#define IMAGE_LIST_H
+#pragma once
 
 #include <vector>
 #include <windows.h>
@@ -39,7 +38,7 @@ const int nbMax = 45;
 class IconList
 {
 public :
-	IconList() : _hImglst(NULL) {};
+	IconList() = default;
 	void create(HINSTANCE hInst, int iconSize);
 	void create(int iconSize, HINSTANCE hInst, int *iconIDArray, int iconIDArraySize);
 
@@ -52,11 +51,11 @@ public :
 	void setIconSize(int size) const;
 
 private :
-	HIMAGELIST _hImglst;
-	HINSTANCE _hInst;
-	int *_pIconIDArray;
-	int _iconIDArraySize;
-	int _iconSize;
+	HIMAGELIST _hImglst = nullptr;
+	HINSTANCE _hInst = nullptr;
+	int *_pIconIDArray = nullptr;
+	int _iconIDArraySize = 0;
+	int _iconSize = 0;
 };
 
 typedef struct 
@@ -77,7 +76,7 @@ typedef std::vector<IconList> IconListVector;
 class IconLists
 {
 public :
-	IconLists() {};
+	IconLists() = default;
 	HIMAGELIST getImageListHandle(int index) const {
 		return _iconListVector[index].getHandle();
 	};
@@ -93,7 +92,7 @@ const int HLIST_DISABLE = 2;
 class ToolBarIcons : public IconLists
 {
 public :
-	ToolBarIcons() : _nbCmd(0) {};
+	ToolBarIcons() = default;
 
 	void init(ToolBarButtonUnit *buttonUnitArray, int arraySize);
 	void create(HINSTANCE hInst, int iconSize);
@@ -112,7 +111,6 @@ public :
 	};
 
 	unsigned int getNbCommand() const {return _nbCmd;};
-	int getCommandAt(int index) const {return _cmdArray[index];};
 	void resizeIcon(int size) {
 		reInit(size);
 	};
@@ -135,8 +133,6 @@ public :
 
 private :
 	ToolBarIconIDs _tbiis;
-	int _cmdArray[nbMax];
-	unsigned int _nbCmd;
+	unsigned int _nbCmd = 0;
 };
 
-#endif //IMAGE_LIST_H
