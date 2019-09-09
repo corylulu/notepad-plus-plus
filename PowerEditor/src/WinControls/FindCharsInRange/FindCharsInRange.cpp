@@ -28,6 +28,8 @@
 
 #include "FindCharsInRange.h"
 #include "findCharsInRange_rc.h"
+#include "Parameters.h"
+#include "localization.h"
 
 INT_PTR CALLBACK FindCharsInRangeDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM)
 {
@@ -52,7 +54,7 @@ INT_PTR CALLBACK FindCharsInRangeDlg::run_dlgProc(UINT message, WPARAM wParam, L
 
 				case ID_FINDCHAR_NEXT:
 				{
-					int currentPos = (*_ppEditView)->execute(SCI_GETCURRENTPOS);
+					int currentPos = static_cast<int32_t>((*_ppEditView)->execute(SCI_GETCURRENTPOS));
 					unsigned char startRange = 0;
 					unsigned char endRange = 255;
 					bool direction = dirDown;
@@ -60,7 +62,11 @@ INT_PTR CALLBACK FindCharsInRangeDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					if (!getRangeFromUI(startRange, endRange))
 					{
 						//STOP!
-						::MessageBox(_hSelf, TEXT("You should type between from 0 to 255."), TEXT("Range Value problem"), MB_OK);
+						NppParameters::getInstance().getNativeLangSpeaker()->messageBox("FindCharRangeValueError",
+							_hSelf,
+							TEXT("You should type between 0 and 255."),
+							TEXT("Range Value problem"),
+							MB_OK);
 						return TRUE;
 					}
 					getDirectionFromUI(direction, isWrap);
@@ -95,7 +101,7 @@ bool FindCharsInRangeDlg::findCharInRange(unsigned char beginRange, unsigned cha
 		(direction == dirDown)?i < totalSize:i >= 0 ;
 		(direction == dirDown)?(++i):(--i))
 	{
-		if ((unsigned char)content[i] >= beginRange && (unsigned char)content[i] <= endRange)
+		if (static_cast<unsigned char>(content[i]) >= beginRange && static_cast<unsigned char>(content[i]) <= endRange)
 		{
 			found = i;
 			break;
@@ -110,7 +116,7 @@ bool FindCharsInRangeDlg::findCharInRange(unsigned char beginRange, unsigned cha
 				(direction == dirDown)?i < totalSize:i >= 0 ;
 				(direction == dirDown)?(++i):(--i))
 			{
-				if ((unsigned char)content[i] >= beginRange && (unsigned char)content[i] <= endRange)
+				if (static_cast<unsigned char>(content[i]) >= beginRange && static_cast<unsigned char>(content[i]) <= endRange)
 				{
 					found = i;
 					break;
@@ -122,7 +128,7 @@ bool FindCharsInRangeDlg::findCharInRange(unsigned char beginRange, unsigned cha
 	if (found != -1)
 	{
 		//printInt(found);
-		int sci_line = (*_ppEditView)->execute(SCI_LINEFROMPOSITION, found);
+		auto sci_line = (*_ppEditView)->execute(SCI_LINEFROMPOSITION, found);
 		(*_ppEditView)->execute(SCI_ENSUREVISIBLE, sci_line);
 		(*_ppEditView)->execute(SCI_GOTOPOS, found);
 		(*_ppEditView)->execute(SCI_SETSEL, (direction == dirDown)?found:found+1, (direction == dirDown)?found+1:found);
@@ -164,8 +170,8 @@ bool FindCharsInRangeDlg::getRangeFromUI(unsigned char & startRange, unsigned ch
 			return false;
 		if (start > end)
 			return false;
-		startRange = (unsigned char)start;
-		endRange = (unsigned char)end;
+		startRange = static_cast<unsigned char>(start);
+		endRange = static_cast<unsigned char>(end);
 		return true;
 	}
 	

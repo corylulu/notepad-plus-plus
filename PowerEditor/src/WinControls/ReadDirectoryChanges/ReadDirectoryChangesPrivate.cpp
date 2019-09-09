@@ -26,6 +26,7 @@
 //	http://qualapps.blogspot.com/2010/05/understanding-readdirectorychangesw.html
 //	See ReadMe.txt for overview information.
 
+#include <shlwapi.h>
 #include "ReadDirectoryChanges.h"
 #include "ReadDirectoryChangesPrivate.h"
 
@@ -71,7 +72,7 @@ bool CReadChangesRequest::OpenDirectory()
 		return true;
 
 	m_hDirectory = ::CreateFileW(
-		m_wstrDirectory,					// pointer to the file name
+		m_wstrDirectory.c_str(),					// pointer to the file name
 		FILE_LIST_DIRECTORY,                // access (read/write) mode
 		FILE_SHARE_READ						// share mode
 		 | FILE_SHARE_WRITE
@@ -98,7 +99,7 @@ void CReadChangesRequest::BeginRead()
 	::ReadDirectoryChangesW(
 		m_hDirectory,						// handle to directory
 		&m_Buffer[0],                       // read results buffer
-		m_Buffer.size(),                    // length of buffer
+		static_cast<DWORD>(m_Buffer.size()),                    // length of buffer
 		m_bIncludeChildren,                 // monitoring option
 		m_dwFilterFlags,                    // filter conditions
 		&dwBytes,                           // bytes returned
@@ -112,7 +113,7 @@ VOID CALLBACK CReadChangesRequest::NotificationCompletion(
 	DWORD dwNumberOfBytesTransfered,					// number of bytes transferred
 	LPOVERLAPPED lpOverlapped)							// I/O information buffer
 {
-	CReadChangesRequest* pBlock = (CReadChangesRequest*)lpOverlapped->hEvent;
+	CReadChangesRequest* pBlock = static_cast<CReadChangesRequest*>(lpOverlapped->hEvent);
 
 	if (dwErrorCode == ERROR_OPERATION_ABORTED)
 	{
@@ -123,11 +124,8 @@ VOID CALLBACK CReadChangesRequest::NotificationCompletion(
 
 	// Can't use sizeof(FILE_NOTIFY_INFORMATION) because
 	// the structure is padded to 16 bytes.
-	_ASSERTE(dwNumberOfBytesTransfered >= offsetof(FILE_NOTIFY_INFORMATION, FileName) + sizeof(WCHAR));
-
-	// This might mean overflow? Not sure.
-	if(!dwNumberOfBytesTransfered)
-		return;
+	_ASSERTE((dwNumberOfBytesTransfered == 0) ||
+		(dwNumberOfBytesTransfered >= offsetof(FILE_NOTIFY_INFORMATION, FileName) + sizeof(WCHAR)));
 
 	pBlock->BackupBuffer(dwNumberOfBytesTransfered);
 
@@ -147,15 +145,15 @@ void CReadChangesRequest::ProcessNotification()
 	{
 		FILE_NOTIFY_INFORMATION& fni = (FILE_NOTIFY_INFORMATION&)*pBase;
 
-		CStringW wstrFilename(fni.FileName, fni.FileNameLength/sizeof(wchar_t));
+		std::wstring wstrFilename(fni.FileName, fni.FileNameLength/sizeof(wchar_t));
 		// Handle a trailing backslash, such as for a root directory.
-		if (wstrFilename.Right(1) != L"\\")
+		if (!wstrFilename.empty() && wstrFilename.back() != L'\\')
 			wstrFilename = m_wstrDirectory + L"\\" + wstrFilename;
 		else
 			wstrFilename = m_wstrDirectory + wstrFilename;
 
 		// If it could be a short filename, expand it.
-		LPCWSTR wszFilename = PathFindFileNameW(wstrFilename);
+		LPCWSTR wszFilename = ::PathFindFileNameW(wstrFilename.c_str());
 		int len = lstrlenW(wszFilename);
 		// The maximum length of an 8.3 filename is twelve, including the dot.
 		if (len <= 12 && wcschr(wszFilename, L'~'))
@@ -163,7 +161,7 @@ void CReadChangesRequest::ProcessNotification()
 			// Convert to the long filename form. Unfortunately, this
 			// does not work for deletions, so it's an imperfect fix.
 			wchar_t wbuf[MAX_PATH];
-			if (::GetLongPathNameW(wstrFilename, wbuf, _countof(wbuf)) > 0)
+			if (::GetLongPathNameW(wstrFilename.c_str(), wbuf, _countof(wbuf)) > 0)
 				wstrFilename = wbuf;
 		}
 

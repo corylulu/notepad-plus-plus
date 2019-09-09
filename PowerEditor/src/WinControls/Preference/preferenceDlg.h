@@ -26,61 +26,43 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef PREFERENCE_DLG_H
-#define PREFERENCE_DLG_H
+#pragma once
 
-#ifndef CONTROLS_TAB_H
 #include "ControlsTab.h"
-#endif //CONTROLS_TAB_H
-
-#ifndef PREFERENCE_RC_H
 #include "preference_rc.h"
-#endif //PREFERENCE_RC_H
-
-#ifndef URLCTRL_INCLUDED
 #include "URLCtrl.h"
-#endif //URLCTRL_INCLUDED
-
-#ifndef PARAMETERS_H
 #include "Parameters.h"
-#endif //PARAMETERS_H
-
-#ifndef REG_EXT_DLG_H
 #include "regExtDlg.h"
-#endif //REG_EXT_DLG_H
-
-#ifndef WORD_STYLE_H
 #include "WordStyleDlg.h"
-#endif //WORD_STYLE_H
 
 class SettingsDlg : public StaticDialog
 {
 public :
-	SettingsDlg() {};
+	SettingsDlg() = default;
 
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class BarsDlg : public StaticDialog
 {
 public :
-	BarsDlg() {};
+	BarsDlg() = default;
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class MarginsDlg : public StaticDialog
 {
 public :
-	MarginsDlg() {};
+	MarginsDlg() = default;
 	virtual void destroy() {
 		_verticalEdgeLineNbColVal.destroy();
 	};
 	
 private :
 	URLCtrl _verticalEdgeLineNbColVal;
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 	void initScintParam();
 };
 
@@ -88,13 +70,13 @@ struct LangID_Name
 {
 	LangType _id;
 	generic_string _name;
-	LangID_Name(LangType id, generic_string name) : _id(id), _name(name){};
+	LangID_Name(LangType id, const generic_string& name) : _id(id), _name(name){};
 };
 
 class DefaultNewDocDlg : public StaticDialog
 {
 public :
-	DefaultNewDocDlg() {};
+	DefaultNewDocDlg() = default;
 
 private :
 	std::vector<LangID_Name> _langList;
@@ -103,22 +85,22 @@ private :
 			::SendDlgItemMessage(_hSelf, IDC_CHECK_OPENANSIASUTF8, BM_SETCHECK, BST_UNCHECKED, 0);
 		::EnableWindow(::GetDlgItem(_hSelf, IDC_CHECK_OPENANSIASUTF8), doIt);
 	};
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class DefaultDirectoryDlg : public StaticDialog
 {
 public :
-	DefaultDirectoryDlg() {};
+	DefaultDirectoryDlg() = default;
 
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class RecentFilesHistoryDlg : public StaticDialog
 {
 public :
-	RecentFilesHistoryDlg() {};
+	RecentFilesHistoryDlg() = default;
 	virtual void destroy() {
 		_nbHistoryVal.destroy();
 		_customLenVal.destroy();
@@ -128,98 +110,117 @@ private :
 	URLCtrl _customLenVal;
 	std::vector<LangID_Name> _langList;
 	void setCustomLen(int val);
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class LangMenuDlg : public StaticDialog
 {
 public :
-	LangMenuDlg() {};
-
-private :
-    LexerStylerArray _lsArray;
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
-	std::vector<LangMenuItem> _langList;
-};
-
-class TabSettings : public StaticDialog
-{
-public :
-	TabSettings() {};
-    virtual void destroy() {
+	LangMenuDlg() = default;
+	virtual void destroy() {
 		_tabSizeVal.destroy();
 	};
 
 private :
-    URLCtrl _tabSizeVal;
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+    LexerStylerArray _lsArray;
+	URLCtrl _tabSizeVal;
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
+	std::vector<LangMenuItem> _langList;
+};
+
+class Highlighting : public StaticDialog
+{
+public :
+	Highlighting() = default;
+
+private :
+
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 
 struct strCouple {
 	generic_string _varDesc;
 	generic_string _var;
-	strCouple(TCHAR *varDesc, TCHAR *var): _varDesc(varDesc), _var(var){};
+	strCouple(const TCHAR *varDesc, const TCHAR *var): _varDesc(varDesc), _var(var){};
 };
 
 class PrintSettingsDlg : public StaticDialog
 {
 public :
-	PrintSettingsDlg():_focusedEditCtrl(0), _selStart(0), _selEnd(0){};
+	PrintSettingsDlg() = default;
+
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 	std::vector<strCouple> varList;
-	int _focusedEditCtrl;
-	DWORD _selStart;
-	DWORD _selEnd;
+	int _focusedEditCtrl = 0;
 };
 
 class BackupDlg : public StaticDialog
 {
 public :
-	BackupDlg() {};
+	BackupDlg() = default;
+
 private :
 	void updateBackupGUI();
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 
 class AutoCompletionDlg : public StaticDialog
 {
 public :
-	AutoCompletionDlg() {};
+	AutoCompletionDlg() = default;
 private :
 	URLCtrl _nbCharVal;
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class MultiInstDlg : public StaticDialog
 {
 public :
-	MultiInstDlg() {};
+	MultiInstDlg() = default;
 
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class DelimiterSettingsDlg : public StaticDialog
 {
 public :
-	DelimiterSettingsDlg() {};
+	DelimiterSettingsDlg() = default;
+	~DelimiterSettingsDlg() {
+		if (_tip)
+			::DestroyWindow(_tip);
+	};
 
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
 	POINT _singleLineModePoint, _multiLineModePoint;
 	RECT _closerRect, _closerLabelRect;
+	HWND _tip = nullptr;
+
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
+	void detectSpace(const char *text2Check, int & nbSp, int & nbTab) const;
+	generic_string getWarningText(size_t nbSp, size_t nbTab) const;
+	void setWarningIfNeed() const;
 };
 
 class SettingsOnCloudDlg : public StaticDialog
 {
 public :
-	SettingsOnCloudDlg() {};
+	SettingsOnCloudDlg() = default;
 
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
+};
+
+class SearchEngineChoiceDlg : public StaticDialog
+{
+public :
+	SearchEngineChoiceDlg() = default;
+
+private :
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 class PreferenceDlg : public StaticDialog
@@ -227,7 +228,7 @@ class PreferenceDlg : public StaticDialog
 friend class NativeLangSpeaker;
 
 public :
-	PreferenceDlg(){};
+	PreferenceDlg() = default;
 
     void init(HINSTANCE hInst, HWND parent)	{
         Window::init(hInst, parent);
@@ -244,24 +245,26 @@ public :
 	bool renameDialogTitle(const TCHAR *internalName, const TCHAR *newName);
 	
 	int getListSelectedIndex() const {
-		return ::SendDlgItemMessage(_hSelf, IDC_LIST_DLGTITLE, LB_GETCURSEL, 0, 0);
+		return static_cast<int32_t>(::SendDlgItemMessage(_hSelf, IDC_LIST_DLGTITLE, LB_GETCURSEL, 0, 0));
 	};
-	void setListSelection(size_t currentSel) const;
+
+	void showDialogByName(const TCHAR *name) const;
+	bool setListSelection(size_t currentSel) const;
 
 	virtual void destroy();
 
 private :
-	INT_PTR CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
+	INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 	void makeCategoryList();
-	void showDialogByIndex(int index);
-	//ControlsTab _ctrlTab;
+	int32_t getIndexFromName(const TCHAR *name) const;
+	void showDialogByIndex(size_t index) const;
 	WindowVector _wVector;
 	BarsDlg _barsDlg;
 	MarginsDlg _marginsDlg;
 	SettingsDlg _settingsDlg;
 	RegExtDlg _fileAssocDlg;
 	LangMenuDlg _langMenuDlg;
-	TabSettings _tabSettings;
+	Highlighting _highlighting;
 	PrintSettingsDlg _printSettingsDlg;
 	DefaultNewDocDlg _defaultNewDocDlg;
 	DefaultDirectoryDlg	_defaultDirectoryDlg;
@@ -271,8 +274,6 @@ private :
 	MultiInstDlg _multiInstDlg;
 	DelimiterSettingsDlg _delimiterSettingsDlg;
 	SettingsOnCloudDlg _settingsOnCloudDlg;
+	SearchEngineChoiceDlg _searchEngineDlg;
 };
 
-
-
-#endif //PREFERENCE_DLG_H

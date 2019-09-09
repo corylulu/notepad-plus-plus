@@ -26,8 +26,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef TASKLIST_H
-#define TASKLIST_H
+#pragma once
 
 #include <windows.h>
 #include <commctrl.h>
@@ -40,17 +39,17 @@
 class TaskList : public Window
 {
 public:
-	TaskList() : Window(), _currentIndex(0), _hFont(NULL), _hFontSelected(NULL) {
+	TaskList() : Window() {
 		_rc.left = 0;
 		_rc.top = 0;
 		_rc.right = 150;
 		_rc.bottom = 0;
 	};
 
-	virtual ~TaskList() {};
+	virtual ~TaskList() = default;
 	void init(HINSTANCE hInst, HWND hwnd, HIMAGELIST hImaLst, int nbItem, int index2set);
 	virtual void destroy();
-	void setFont(TCHAR *fontName, size_t fontSize);
+	void setFont(const TCHAR *fontName, int fontSize);
 	RECT adjustSize();
 	int getCurrentIndex() const {return _currentIndex;}
 	int updateCurrentIndex();
@@ -70,12 +69,10 @@ protected:
 		return (((TaskList *)(::GetWindowLongPtr(hwnd, GWLP_USERDATA)))->runProc(hwnd, Message, wParam, lParam));
 	};
 
-	HFONT _hFont;
-	HFONT _hFontSelected;
-	int _nbItem;
-	int _currentIndex;
+	HFONT _hFont = nullptr;
+	HFONT _hFontSelected = nullptr;
+	int _nbItem = 0;
+	int _currentIndex = 0;
 	RECT _rc;
 };
 
-
-#endif // TASKLIST_H

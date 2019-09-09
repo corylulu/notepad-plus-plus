@@ -27,13 +27,9 @@
 
 // created by Daniel Volk mordorpost@volkarts.com
 
-#ifndef RUN_MACRO_DLG_H
-#define RUN_MACRO_DLG_H
+#pragma once
 
-#ifndef RUN_MACRO_DLG_RC_H
 #include "RunMacroDlg_rc.h"
-#endif //RUN_MACRO_DLG_RC_H
-
 #include "StaticDialog.h"
 
 #define RM_CANCEL -1
@@ -43,9 +39,8 @@
 class RunMacroDlg : public StaticDialog
 {
 public :
-	RunMacroDlg() : StaticDialog(), m_Mode(RM_RUN_MULTI), m_Times(1) {};
-	~RunMacroDlg() {
-	};
+	RunMacroDlg() = default;
+	~RunMacroDlg() = default;
 
 	void init(HINSTANCE hInst, HWND hPere/*, ScintillaEditView **ppEditView*/) {
 		Window::init(hInst, hPere);
@@ -55,22 +50,25 @@ public :
 		if (!isCreated())
 			create(IDD_RUN_MACRO_DLG, isRTL);
 		else
+		{
+			// Shortcut might have been updated for current session
+			// So reload the macro list (issue #4526)
+			initMacroList();
 			::ShowWindow(_hSelf, SW_SHOW);
+		}
 	};
 
 	void initMacroList();
 
-	int getMode() const {return m_Mode;};
-	int getTimes() const {return m_Times;};
+	int getMode() const {return _mode;};
+	int getTimes() const {return _times;};
 	int getMacro2Exec() const;
 
 private :
 	virtual INT_PTR CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 	void check(int);
 
-	int m_Mode;
-	int m_Times;
-	int m_macroIndex;
+	int _mode = RM_RUN_MULTI;
+	int _times = 1;
+	int _macroIndex = 0;
 };
-
-#endif //RUN_MACRO_DLG_H

@@ -44,7 +44,7 @@ int ScintillaCtrls::getIndexFrom(HWND handle2Find)
 	{
 		if (_scintVector[i]->getHSelf() == handle2Find)
 		{
-			return i;
+			return static_cast<int32_t>(i);
 		}
 	}
 	return -1;
@@ -58,6 +58,7 @@ ScintillaEditView * ScintillaCtrls::getScintillaEditViewFrom(HWND handle2Find)
 	return _scintVector[i];
 }
 
+/*
 bool ScintillaCtrls::destroyScintilla(HWND handle2Destroy)
 {
 	int i = getIndexFrom(handle2Destroy);
@@ -71,6 +72,7 @@ bool ScintillaCtrls::destroyScintilla(HWND handle2Destroy)
 	_scintVector.erase(it2delete);
 	return true;
 }
+*/
 
 void ScintillaCtrls::destroy() 
 {
