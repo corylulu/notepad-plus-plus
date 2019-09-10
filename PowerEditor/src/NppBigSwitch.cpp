@@ -128,6 +128,8 @@ int CharacterIs(TCHAR c, const TCHAR *any)
 	return FALSE;
 }
 
+bool _isActive = false;
+
 LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT result = FALSE;
@@ -629,6 +631,30 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 		case NPPM_INTERNAL_SAVEBACKUP:
 		{
+			// This is an workaround to deal with Microsoft issue in ReadDirectoryChanges notification
+			// If command prompt is used to write file continuously (e.g. ping -t 8.8.8.8 > ping.log)
+			// Then ReadDirectoryChanges does not detect the change.
+			// Fortunately, notification is sent if right click or double click happens on that file
+			// Let's leverage this as workaround to enhance npp file monitoring functionality.
+			// So calling "PathFileExists" is a workaround here.
+			//*
+			
+			if(!_isActive)
+			{
+				Buffer* currBuf = getCurrentBuffer();
+				if (currBuf && currBuf->isMonitoringOn())
+					::PathFileExists(currBuf->getFullPathName());
+
+				const NppGUI & nppgui = nppParam.getNppGUI();
+				if (nppgui._fileAutoDetection != cdDisabled)
+				{
+					bool bCheckOnlyCurrentBuffer = (nppgui._fileAutoDetection & cdEnabledNew) ? true : false;
+
+					checkModifiedDocument(bCheckOnlyCurrentBuffer);
+					//return TRUE;
+				}
+			}
+			//*/
 			if (NppParameters::getInstance().getNppGUI().isSnapshotMode())
 			{
 				MainFileManager.backupCurrentBuffer();
@@ -1634,9 +1660,19 @@ LRESULT Notepad_plus::process(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
 		case WM_ACTIVATE:
 		{
-			_pEditView->getFocus();
+			if(wParam == WA_INACTIVE)
+			{
+				_isActive = false;
+				_pEditView->getFocus();
+			}
+			else
+			{
+				_isActive = true;
+				_pEditView->getFocus();
+			}
 			return TRUE;
 		}
+		
 
 		case WM_DROPFILES:
 		{

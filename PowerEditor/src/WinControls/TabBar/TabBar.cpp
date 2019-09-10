@@ -259,7 +259,7 @@ void TabBar::reSizeTo(RECT & rc2Ajust)
 
 void TabBarPlus::destroy()
 {
-	KillTimer(_hSelf, 1);
+	//KillTimer(_hSelf, 1);
 
 	TabBar::destroy();
 	::DestroyWindow(_tooltips);
@@ -286,25 +286,6 @@ bool TabBarPlus::isHighlighed(int index)
 	return (tci.dwState & TCIS_HIGHLIGHTED) != 0;
 }
 
-void TabBarPlus::setHighlight(int index, bool val)
-{
-	::SendMessage(_hSelf, TCM_HIGHLIGHTITEM, index, MAKELPARAM(val ? TRUE : FALSE, 0));
-}
-
-
-bool TabBarPlus::isHighlighed(int index)
-{
-	TCITEM tci;
-	tci.mask = TCIF_STATE;
-	tci.cchTextMax = 0;
-	tci.dwStateMask = TCIS_HIGHLIGHTED;
-
-	if (!::SendMessage(_hSelf, TCM_GETITEM, index, reinterpret_cast<LPARAM>(&tci)))
-	{
-		::MessageBox(NULL, TEXT("! TCM_GETITEM"), TEXT(""), MB_OK);
-	}
-	return (tci.dwState & TCIS_HIGHLIGHTED) != 0;
-}
 
 void TabBarPlus::init(HINSTANCE hInst, HWND parent, bool isVertical, bool isMultiLine)
 {
@@ -338,8 +319,9 @@ void TabBarPlus::init(HINSTANCE hInst, HWND parent, bool isVertical, bool isMult
 	{
 		throw std::runtime_error("TabBarPlus::init : CreateWindowEx() function return null");
 	}
-
-	SetTimer(_hSelf, 1, 500, NULL);
+	
+	// Need to also kill if in use
+	//SetTimer(_hSelf, 1, 500, NULL);
 
 	_tooltips = ::CreateWindowEx(
 		0,
@@ -1032,7 +1014,12 @@ void TabBarPlus::drawItem(DRAWITEMSTRUCT *pDrawItemStruct)
 			GetSystemTime(&time);
 			DWORD isHighlighted = tci.dwState & TCIS_HIGHLIGHTED;
 
-			COLORREF color = isHighlighted ? (time.wSecond%2==0 ? _inactiveBgColour : 0xffff) : _inactiveBgColour;
+
+			COLORREF color = /*isHighlighted ? 0xffff (time.wSecond%2==0 ? _inactiveBgColour : 0xffff) : */_inactiveBgColour;
+			if (isHighlighted)
+			{
+				color = 0xFFFF;
+			}
 			hBrush = ::CreateSolidBrush(color);
 			::FillRect(hDC, &barRect, hBrush);
 			::DeleteObject((HGDIOBJ)hBrush);

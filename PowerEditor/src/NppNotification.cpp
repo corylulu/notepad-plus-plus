@@ -355,11 +355,11 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 							_mainDocTab.setHighlight(_mainDocTab.getIndexByBuffer(bufid), false);
 						if (_subDocTab.getIndexByBuffer(bufid) != -1)
 							_subDocTab.setHighlight(_subDocTab.getIndexByBuffer(bufid), false);
-						Buffer * pBuf = MainFileManager->getBufferByID(bufid);
+						Buffer * pBuf = MainFileManager.getBufferByID(bufid);
 						if (doReloadOrNot(pBuf->getFullPathName(), pBuf->isDirty()) == IDYES)
 						{
 							doReload(bufid, false);
-							if (NppParameters::getInstance()->getNppGUI()._fileAutoDetection == cdHighlightGo2end)
+							if (NppParameters::getInstance().getNppGUI()._fileAutoDetection & cdHighlightGo2end)
 							{
 								bool mainActive = (_mainEditView.getCurrentBufferID() == bufid);
 								performPostReload(mainActive ? MAIN_VIEW : SUB_VIEW);
@@ -406,11 +406,11 @@ BOOL Notepad_plus::notify(SCNotification *notification)
 						_mainDocTab.setHighlight(_mainDocTab.getIndexByBuffer(bufid), false);
 					if (_subDocTab.getIndexByBuffer(bufid) != -1)
 						_subDocTab.setHighlight(_subDocTab.getIndexByBuffer(bufid), false);
-					Buffer * pBuf = MainFileManager->getBufferByID(bufid);
+					Buffer * pBuf = MainFileManager.getBufferByID(bufid);
 					if (doReloadOrNot(pBuf->getFullPathName(), pBuf->isDirty()) == IDYES)
 					{
 						doReload(bufid, false);
-						if (NppParameters::getInstance()->getNppGUI()._fileAutoDetection == cdHighlightGo2end)
+						if (NppParameters::getInstance().getNppGUI()._fileAutoDetection & cdHighlightGo2end)
 						{
 							bool mainActive = (_mainEditView.getCurrentBufferID() == bufid);
 							performPostReload(mainActive ? MAIN_VIEW : SUB_VIEW);

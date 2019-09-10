@@ -3804,7 +3804,7 @@ bool Notepad_plus::activateBuffer(BufferID id, int whichOne)
 void Notepad_plus::performPostReload(int whichOne) {
 	NppParameters& nppParam = NppParameters::getInstance();
 	const NppGUI & nppGUI = nppParam.getNppGUI();
-	bool toEnd = (nppGUI._fileAutoDetection == cdAutoUpdateGo2end) || (nppGUI._fileAutoDetection == cdGo2end) || (nppGUI._fileAutoDetection == cdHighlightGo2end);
+	bool toEnd = (nppGUI._fileAutoDetection & cdAutoUpdateGo2end) || (nppGUI._fileAutoDetection & cdGo2end) || (nppGUI._fileAutoDetection & cdHighlightGo2end);
 	if (!toEnd)
 		return;
 	if (whichOne == MAIN_VIEW) {
@@ -5144,8 +5144,8 @@ void Notepad_plus::notifyBufferChanged(Buffer * buffer, int mask)
 					break;
         // [ End ] CORY'S CHANGE
         
-				bool highlight = (nppGUI._fileAutoDetection == cdHighlight) || (nppGUI._fileAutoDetection == cdHighlightGo2end);
-				bool autoUpdate = (nppGUI._fileAutoDetection == cdAutoUpdate) || (nppGUI._fileAutoDetection == cdAutoUpdateGo2end);
+				bool highlight = (nppGUI._fileAutoDetection & cdHighlight) || (nppGUI._fileAutoDetection & cdHighlightGo2end);
+				bool autoUpdate = (nppGUI._fileAutoDetection & cdAutoUpdate) || (nppGUI._fileAutoDetection & cdAutoUpdateGo2end);
 				if ((highlight && (mainActive || subActive)) || (!highlight && !autoUpdate) || buffer->isDirty())
 
 				{
